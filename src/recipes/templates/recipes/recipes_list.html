@@ -49,6 +49,121 @@
             margin-bottom: 40px;
         }
 
+        /* Search Form Styles */
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .search-title {
+            color: #e85a14;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: #ff6b35;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-count {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .chart-container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
         .recipes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -106,6 +221,13 @@
             font-size: 14px;
             line-height: 1.4;
         }
+
+        .no-results {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+            padding: 40px;
+        }
     </style>
 </head>
 <body>
@@ -117,8 +239,66 @@
         </nav>
         
         <div class="container">
-            <h1>Our Recipe Collection</h1>
+            <h1>Recipe Search & Browse</h1>
             
+            <!-- Search Form -->
+            <div class="search-section">
+                <h2 class="search-title">Search Recipes</h2>
+                <form method="GET" class="search-form">
+                    {{ form.recipe_name }}
+                    {{ form.ingredients }}
+                    {{ form.cooking_time_min }}
+                    {{ form.cooking_time_max }}
+                    {{ form.difficulty }}
+                    
+                    <div class="search-buttons" style="grid-column: 1 / -1;">
+                        <button type="submit" class="btn btn-primary">Search Recipes</button>
+                        <a href="{% url 'recipes:recipes_list' %}" class="btn btn-secondary">View All Recipes</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Count -->
+            {% if total_results is not None %}
+            <div class="results-section">
+                <div class="results-header">
+                    <div class="results-count">
+                        Found {{ total_results }} recipe{{ total_results|pluralize }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Charts Section -->
+            {% if charts and total_results > 0 %}
+            <div class="charts-section">
+                <h2 style="color: #e85a14; text-align: center; margin-bottom: 30px;">Search Results Analysis</h2>
+                <div class="charts-grid">
+                    {% if charts.pie_chart %}
+                    <div class="chart-container">
+                        <h3 style="color: #e85a14; margin-bottom: 15px;">Cooking Time Distribution</h3>
+                        <img src="data:image/png;base64,{{ charts.pie_chart }}" alt="Cooking Time Pie Chart">
+                    </div>
+                    {% endif %}
+                    
+                    {% if charts.bar_chart %}
+                    <div class="chart-container">
+                        <h3 style="color: #e85a14; margin-bottom: 15px;">Difficulty Level Distribution</h3>
+                        <img src="data:image/png;base64,{{ charts.bar_chart }}" alt="Difficulty Bar Chart">
+                    </div>
+                    {% endif %}
+                    
+                    {% if charts.line_chart %}
+                    <div class="chart-container">
+                        <h3 style="color: #e85a14; margin-bottom: 15px;">Recipes by Cooking Time Range</h3>
+                        <img src="data:image/png;base64,{{ charts.line_chart }}" alt="Cooking Time Line Chart">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Recipe Results -->
             <div class="recipes-grid">
                 {% for recipe in recipes %}
                     <a href="{% url 'recipes:recipes_detail' recipe.id %}" style="text-decoration: none; color: inherit;">
@@ -137,7 +317,13 @@
                         </div>
                     </a>
                 {% empty %}
-                    <p style="text-align: center; color: #666; font-size: 18px;">No recipes available yet.</p>
+                    <div class="no-results">
+                        {% if request.GET %}
+                            No recipes found matching your search criteria. Try adjusting your filters.
+                        {% else %}
+                            No recipes available yet.
+                        {% endif %}
+                    </div>
                 {% endfor %}
             </div>
         </div>
